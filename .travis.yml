@@ -11,5 +11,6 @@ deploy:
   local-dir: "target"
   acl: public_read
   skip_cleanup: true
+  region: eu-west-1
   on:
     repo: vgrigoruk/selenoid-cfn
