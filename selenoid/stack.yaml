@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+  CloudFormation stack that has a single EC2 instance running selenoid and selenoid-ui.
+  EC2 instance has a public IP address and [22, 4444, 8080] ports opened to the world.
+
+Parameters:
+  VpcId:
+    Description: The VPC id
+    Type: AWS::EC2::VPC::Id
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2'
+  InstanceType:
+    Description: Instance type
+    Type: String
+    Default: t3.nano
+    AllowedValues: # Feel free to add other types
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+  KeyPairName:
+    Description: Provides the name of the Amazon EC2 key pair for SSH access.
+    Type: AWS::EC2::KeyPair::KeyName
+
+Resources:
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub ${AWS::StackName}
+      GroupDescription: !Sub "Security group for ${AWS::StackName}"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '4444'
+          ToPort: '4444'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '8080'
+          ToPort: '8080'
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref VpcId
+  SelenoidInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      KeyName: !Ref KeyPairName
+      UserData: 
+        "Fn::Base64":
+          "Fn::Sub": |
+            #!/bin/bash -xe
+            /opt/aws/bin/cfn-init -v --stack ${AWS::StackId} --region ${AWS::Region} \
+              --configsets service_configuration --resource SelenoidInstance
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --region ${AWS::Region} \
+              --resource SelenoidInstance
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}"
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          service_configuration:
+          - docker
+          - selenoid
+        docker:
+          packages:
+            yum:
+              docker: []
+          services:
+            sysvinit:
+              docker:
+                enabled: "true"
+                ensureRunning: "true"
+                packages:
+                  yum:
+                    - "docker"
+        selenoid:
+          commands:
+            install_and_launch:
+              command: |
+                cd /root
+                curl -s https://aerokube.com/cm/bash | bash
+                ./cm selenoid start --last-versions 1  --tmpfs 128 --vnc --args "-limit $(nproc --all)"
+                DOCKER_GATEWAY_ADDR=`docker inspect selenoid -f {{.NetworkSettings.Gateway}}`
+                ./cm selenoid-ui start --args "--selenoid-uri http://${DOCKER_GATEWAY_ADDR}:4444"
+
+Outputs:
+  RemoteWebDriverURL:
+    Value: !Sub "http://${SelenoidInstance.PublicDnsName}:4444/wd/hub"
+  SelenoidStatus:
+    Value: !Sub "http://${SelenoidInstance.PublicDnsName}:4444/status"
+  SelenoidUI:
+    Value: !Sub "http://${SelenoidInstance.PublicDnsName}:8080"
