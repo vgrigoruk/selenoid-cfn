@@ -10,5 +10,6 @@ deploy:
   bucket: selenoid-cfn
   local-dir: "target"
   acl: public_read
+  skip_cleanup: true
   on:
     repo: vgrigoruk/selenoid-cfn
