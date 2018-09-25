@@ -8,7 +8,7 @@ deploy:
   secret_access_key:
     secure: NDxhopcwx2TbH/3OPvXRNF/UKeFIt7/SS/nrg/9F/TjOBcXO0Hmkk2mXsQNOmZj1Msu+OubzQ0LIDPlhsO4Sb1b9brwlfVc9CrcComkRrRE5gcoVwj9Qf18hTPsweQlsUhtp2YHuneOfxDvuvkXlhjGNLgAZiLBnCzZuftWwrCEAfWFacyUtob9lYqUPuFTXA8HGBZrfur23n2J8rC/hwNThoNjE6naAs94uQXJyHFhMY+gLqkgmLMtmm9Lt+5jB5sfwOf/5ADhMHdY49wXct3LoVmZynDNsjoT7Y8dMazBzw1hVGwV4/tgbgQUTOPGIXXceevzYNmoH3Kwy6wSEDlmW6s/fsT8KUaHl4O3WIyX44rz7PdgFZUJ4tnWbA/oalItlI8OmeW6s8ACPCteC/oerJ4wj2u+eE1eoJKtGZ/VCK1S6Kqwbj6lnPpSS7Hf9bORMxCEqLbY685vYSd1LmfFQacCN3M1w9oIIFGpUt5xkfviryaOxHqMr4Vc8EoRI5eENZ2mNJlk8WstKQkott4xxngOEXOY9mPFFJ837urND40Md4qrZsTdfGE/fubdsvUOmgMASpTFPj1siUMkAAMWXEn15cXovsL34bj80At4sffUaulFWj8/BhYOAd02ctwfSX8gDds2YjY6kKpTgOzNETgvRI9woluTC/aAcYtU=
   bucket: selenoid-cfn
-  local-dir: "/target"
+  local-dir: "target"
   acl: public_read
   on:
     repo: vgrigoruk/selenoid-cfn
